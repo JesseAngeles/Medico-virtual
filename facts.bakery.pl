@@ -1,0 +1,12 @@
+bakery(no_bakery, 0).
+bakery(sponge_cake, 456).
+bakery(chocolate_croissant, 469).
+bakery(croissant_donut, 456).
+bakery(chocolate_cookies, 524).
+bakery(danish_butter_cookies, 397).
+bakery(salted_cookies, 464).
+bakery(muffins, 469).
+bakery(cooked_puff_pastry, 565).
+bakery(apple_pie, 311).
+bakery(apple_puff_pastry_pie, 456).
+bakery(cheesecake, 414).

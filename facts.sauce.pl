@@ -1,0 +1,11 @@
+sauce(no_sauce, 0).
+sauce(bechamel, 115).
+sauce(concentrated_broths, 259).
+sauce(ketchup, 98).
+sauce(mayonnaise, 718).
+sauce(light_mayonnaise, 374).
+sauce(mustard, 15).
+sauce(soy_sauce, 61).
+sauce(canned_tomato_sauce, 86).
+sauce(sofrito, 116).
+sauce(vinegars, 8).
