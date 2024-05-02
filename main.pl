@@ -68,54 +68,49 @@ calculate_basal_metabolism(Result) :-
     Result is R1 - Rest).
 
 diet(Waste) :-
-    breakfastMin(BrMin),
-    breakfastMax(BrMax),
-    breakfast(A1, A2, A3, A4, A5, A6, A7, A8, K1),
-    K1 >= Waste * BrMin,
-    K1 < Waste * BrMax,
+    breakfastMin(Bmin),
+    breakfastMax(Bmax),
+    breakfast(Bbakery, Bcereal, Bdairy, Bdrink, Begg, Bfruit, Bnut, Bsugar, Bkc),
+    Bkc >= Waste * Bmin,
+    Bkc < Waste * Bmax,
 
-    middaySnackMin(MsMin),
-    middaySnackMax(MsMax),
-    middaySnack(B1, B2, B3, B4, K2),
-    A3 \= B2, A6 \= B3, A6 \= B4,
-    K2 >= Waste * MsMin,
-    K2 < Waste * MsMax,
+    middaySnackMin(Mmin),
+    middaySnackMax(Mmax),
+    middaySnack(Mbakery, Mdairy, Mfruit, Mnut, Mkc),
+    Mkc >= Waste * Mmin,
+    Mkc < Waste * Mmax,
 
     lunchMin(LuMin),
     lunchMax(LuMax),
-    lunch(C1, C2, C3, C4, C5, C6, K3),
-    A2 \= C4, A4 \= C6,
-    K3 >= Waste * LuMin,
-    K3 < Waste * LuMax,
+    lunch(Lvegetable, Lmeat_or_fish, Llegume, Lcereal, Lsauce, Ldrink, Lkc),
+    Lkc >= Waste * LuMin,
+    Lkc < Waste * LuMax,
 
     afternoonSnackMin(AsMin),
     afternoonSnackMax(AsMax),
-    afternoonSnack(D1, D2, K4),
-    B2 \= D2, A3 \= D2, B3 \= D1, B4 \= D2, A6 \= D2, 
+    afternoonSnack(Afruit, Adairy, K4),
     K4 >= Waste * AsMin,
     K4 < Waste * AsMax,
 
     dinnerMin(DiMin),
     dinnerMax(DiMax),
-    dinner(E1, E2, E3, E4, E5, E6, K5),
-    C4 \= E3, A2 \= E3, C6 \= E5, A4 \= E5, D1 \= E6, A6 \= E6, 
-    C1 \= E1, C2 \= E2, C3 \= E3, E3 \= E6, C3 \= E6, C5 \= E4,  
+    dinner(Dvegetables, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, K5),
     K5 >= Waste * DiMin,
     K5 < Waste * DiMax,
 
     %Ignore_repeated_food
-    % A2 \= C4, C4 \= E3, A2 \= E3,           %Cereal
-    % A3 \= B2, B2 \= D2, A3 \= D2,           %Dairy
-    % A4 \= C6, C6 \= E5, A4 \= E5,           %Drink
-    % A6 \= B3, B3 \= D1, D1 \= E6, A6 \= E6, %Fruit
-    % A6 \= B4, B4 \= D2, A6 \= D2,           %Nut
-    % C1 \= E1,                               %Vegetable
-    % C2 \= E2,                               %Meat_or_Fish
-    % C3 \= E3, E3 \= E6, C3 \= E6,           %Legume
-    % C5 \= E4,                               %Sauce
+    % Bcereal \= Lcereal, Lcereal \= Dcereal_or_legume, Bcereal \= Dcereal_or_legume,                   %Cereal
+    % Bdairy \= Mdairy, Mdairy \= Adairy, Bdairy \= Adairy,                                             %Dairy
+    % Bdrink \= Ldrink, Ldrink \= Ddrink, Bdrink \= Ddrink,                                             %Drink
+    % Bfruit \= Mfruit, Mfruit \= Afruit, Afruit \= Dfruit_or_legume, Bfruit \= Dfruit_or_legume,       %Fruit
+    % Bfruit \= Mnut, Mnut \= Adairy, Bfruit \= Adairy,                                                 %Nut
+    % Lvegetable \= Dvegetables,                                                                        %Vegetable
+    % Lmeat_or_fish \= Dmeat_or_fish,                                                                   %Meat_or_Fish
+    % Llegume \= Dcereal_or_legume, Dcereal_or_legume \= Dfruit_or_legume, Llegume \= Dfruit_or_legume, %Legume
+    % Lsauce \= Dsauce,                                                                                 %Sauce
 
 
-    KCal is K1 + K2 + K3 + K4 + K5,
+    KCal is Bkc + Mkc + Lkc + K4 + K5,
     UnderLimit is Waste - (Waste * 0.5),
     OverLimit is Waste + (Waste * 0.5),
 
@@ -124,11 +119,11 @@ diet(Waste) :-
     
     !,  % Prevent backtracking   
     
-    formatResults([A1, A2, A3, A4, A5, A6, A7, A8, K1], 
-        [B1, B2, B3, B4, K2], 
-        [C1, C2, C3, C4, C5, C6, K3], 
-        [D1, D2, K4], 
-        [E1, E2, E3, E4, E5, E6, K5], 
+    formatResults([Bbakery, Bcereal, Bdairy, Bdrink, Begg, Bfruit, Bnut, Bsugar, Bkc], 
+        [Mbakery, Mdairy, Mfruit, Mnut, Mkc], 
+        [Lvegetable, Lmeat_or_fish, Llegume, Lcereal, Lsauce, Ldrink, Lkc], 
+        [Afruit, Adairy, K4], 
+        [Dvegetables, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, K5], 
         KCal).
 
 formatResults(Breakfast, MiddaySnack, Lunch, AfternoonSnack, Dinner, KCal) :-
