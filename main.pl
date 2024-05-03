@@ -1,4 +1,15 @@
 :- consult('main.facts.pl').
+:- dynamic recipes/2.
+
+% Nueva regla para generar una receta única y verificar si ya existe
+generate_unique_recipe(RecipeType, Recipe) :-
+    call(RecipeType, Recipe),  % Genera la receta
+    \+ recipe_exists(RecipeType, Recipe).  % Verifica si la receta ya existe
+
+% Predicado para generar una receta aleatoria de desayuno
+generate_unique_breakfast :-
+    generate_unique_recipe(breakfast, Recipe),  % Genera un desayuno único
+    assertz(recipe(breakfast, Recipe)).  % Almacena la receta si es única
 
 diagnostic(0, BodyMass, Result) :-
     (   BodyMass < 16 -> Result = malnutrition;
@@ -48,7 +59,9 @@ bodyMass :-
 
 recommendDiet :-
     calculate_basal_metabolism(BasalMetabolism),
-    diet(BasalMetabolism), fail.
+    diet(BasalMetabolism, Recipes), 
+    assertz(recipes(Recipes)),
+    fail.
 
 calculate_basal_metabolism(Result) :-
     set_gender(Gender),
@@ -67,7 +80,7 @@ calculate_basal_metabolism(Result) :-
     Rest is floor((Age - 45) / 10) * 100,
     Result is R1 - Rest).
 
-diet(Waste) :-
+diet(Waste, Recipes) :-
     breakfastMin(Bmin),
     breakfastMax(Bmax),
     breakfast(Bbakery, Bcereal, Bdairy, Bdrink, Begg, Bfruit, Bnut, Bsugar, Bkc),
@@ -88,29 +101,30 @@ diet(Waste) :-
 
     afternoonSnackMin(AsMin),
     afternoonSnackMax(AsMax),
-    afternoonSnack(Afruit, Adairy, K4),
-    K4 >= Waste * AsMin,
-    K4 < Waste * AsMax,
+    afternoonSnack(Afruit, Adairy, Akc),
+    Akc >= Waste * AsMin,
+    Akc < Waste * AsMax,
 
     dinnerMin(DiMin),
     dinnerMax(DiMax),
-    dinner(Dvegetables, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, K5),
-    K5 >= Waste * DiMin,
-    K5 < Waste * DiMax,
+    dinner(Dvegetable, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, Dkc),
+    Dkc >= Waste * DiMin,
+    Dkc < Waste * DiMax,
 
-    %Ignore_repeated_food
-    % Bcereal \= Lcereal, Lcereal \= Dcereal_or_legume, Bcereal \= Dcereal_or_legume,                   %Cereal
-    % Bdairy \= Mdairy, Mdairy \= Adairy, Bdairy \= Adairy,                                             %Dairy
-    % Bdrink \= Ldrink, Ldrink \= Ddrink, Bdrink \= Ddrink,                                             %Drink
-    % Bfruit \= Mfruit, Mfruit \= Afruit, Afruit \= Dfruit_or_legume, Bfruit \= Dfruit_or_legume,       %Fruit
-    % Bfruit \= Mnut, Mnut \= Adairy, Bfruit \= Adairy,                                                 %Nut
-    % Lvegetable \= Dvegetables,                                                                        %Vegetable
-    % Lmeat_or_fish \= Dmeat_or_fish,                                                                   %Meat_or_Fish
-    % Llegume \= Dcereal_or_legume, Dcereal_or_legume \= Dfruit_or_legume, Llegume \= Dfruit_or_legume, %Legume
-    % Lsauce \= Dsauce,                                                                                 %Sauce
+    Recipe1 = [Bbakery, Bcereal, Bdairy, Bdrink, Begg, Bfruit, Bnut, Bsugar],
+    Recipe2 = [Mbakery, Mdairy, Mfruit, Mnut],
+    Recipe3 = [Lvegetable, Lmeat_or_fish, Llegume, Lcereal, Lsauce, Ldrink],
+    Recipe4 = [Afruit, Adairy],
+    Recipe5 = [Dvegetable, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume],
 
+    Recipe = Recipes,
+    compare_recipe(Recipe1, Recipe),
+    compare_recipe(Recipe2, Recipe),
+    compare_recipe(Recipe3, Recipe),
+    compare_recipe(Recipe4, Recipe),
+    compare_recipe(Recipe5, Recipe),
 
-    KCal is Bkc + Mkc + Lkc + K4 + K5,
+    KCal is Bkc + Mkc + Lkc + Akc + Dkc,
     UnderLimit is Waste - (Waste * 0.5),
     OverLimit is Waste + (Waste * 0.5),
 
@@ -122,8 +136,8 @@ diet(Waste) :-
     formatResults([Bbakery, Bcereal, Bdairy, Bdrink, Begg, Bfruit, Bnut, Bsugar, Bkc], 
         [Mbakery, Mdairy, Mfruit, Mnut, Mkc], 
         [Lvegetable, Lmeat_or_fish, Llegume, Lcereal, Lsauce, Ldrink, Lkc], 
-        [Afruit, Adairy, K4], 
-        [Dvegetables, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, K5], 
+        [Afruit, Adairy, Akc], 
+        [Dvegetable, Dmeat_or_fish, Dcereal_or_legume, Dsauce, Ddrink, Dfruit_or_legume, Dkc], 
         KCal).
 
 formatResults(Breakfast, MiddaySnack, Lunch, AfternoonSnack, Dinner, KCal) :-
@@ -150,5 +164,13 @@ set_height(Height) :-
 set_age(Age) :-
     nl, write("Age in years: "),
     read(Age).
+
+% Predicado para comparar un elemento con una lista de recetas
+compare_recipe(Element, Recipes) :-
+    (   member(Element, Recipes)  % Verifica si el Elemento ya está en Recipes
+    ->  fail  % Si el Elemento ya está en Recipes, falla
+    ;   assertz(recipe(Element))  % Si el Elemento no está en Recipes, agrégalo a Recipes
+    ).
+
 
 %consult('main.pl').
